@@ -79,7 +79,7 @@
     <div id="output" class="message"></div>
 
     <!-- Mérleglőzsák levonás -->
-    <label><input type="checkbox" id="levonasCheckbox"> Mérleglőzsák levonása</label>
+    <label><input type="checkbox" id="levonasCheckbox"> Mérleglőzsák visszamérése</label>
     <select id="zsakSulySelect" style="display:none;"></select>
 
     <button onclick="fogasMentese()" id="mentesBtn" disabled>💾 Fogás mentése</button>
@@ -102,10 +102,10 @@
     let device;
     let utolsoAdat = null;
 
-    // Lenyíló lista feltöltése 1.0 - 2.5 kg 0.1 kg lépésekkel
+    // Lenyíló lista feltöltése 1.0 - 3.5 kg 0.1 kg lépésekkel
     function zsakSulyFeltolt() {
       zsakSulySelect.innerHTML = '';
-      for (let w = 1.0; w <= 2.5; w += 0.1) {
+      for (let w = 1.0; w <= 3.5; w += 0.1) {
         const wFixed = w.toFixed(1);
         const option = document.createElement('option');
         option.value = wFixed;
@@ -148,9 +148,9 @@
           const raw = parseFloat(data.massTotal);
           if (!isNaN(raw)) {
             const formatted = `${raw.toFixed(2)} kg`;
-            output.textContent = `⚖️ Mért érték: ${formatted}`;
+            output.textContent = `⚖️ Súly: ${formatted}`;
           } else {
-            output.textContent = "⚖️ Mért érték: Érvénytelen adat";
+            output.textContent = "⚖️ Súly: Érvénytelen adat";
           }
         });
 
@@ -205,7 +205,7 @@
 
       veglegesSulyDiv.style.display = "block";
       veglegesSulyDiv.className = "message success";
-      veglegesSulyDiv.textContent = `✅ Végleges súly levonás után: ${vegleges.toFixed(2)} kg`;
+      veglegesSulyDiv.textContent = `✅ Nettó súly: ${vegleges.toFixed(2)} kg`;
     }
 
     window.csatlakozas = csatlakozas;
