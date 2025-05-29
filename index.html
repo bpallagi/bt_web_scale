@@ -72,7 +72,7 @@
     .checkbox-row {
       display: flex;
       justify-content: space-between;
-      align-items: left;
+      align-items: center;
     }
     .checkbox-row label {
       flex: 1;
@@ -91,12 +91,14 @@
 
     <div id="output" class="message"></div>
 
-    <div class="checkbox-row">
-      <label>
-        <input type="checkbox" id="levonasCheckbox"> Mérleglőzsák visszamérése
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+      <label style="display: flex; align-items: center;">
+        <input type="checkbox" id="tareCheckbox" style="margin-right: 5px;">
+        Mérleglőzsák visszamérése
       </label>
-      <label>
-        <input type="checkbox" id="preciseCheckbox"> Precíz mérés +0.05 kg
+      <label style="display: flex; align-items: center;">
+        <input type="checkbox" id="preciseCheckbox" style="margin-right: 5px;">
+        Precíz mérés +0.05 kg
       </label>
     </div>
     <select id="zsakSulySelect" style="display:none;"></select>
