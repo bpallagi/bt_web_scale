@@ -115,8 +115,11 @@
         Mérleglőzsák visszamérése
       </label>
       <label style="display: flex; align-items: center;">
-        <input type="checkbox" id="preciseCheckbox" style="margin-right: 5px;">
-        Precíz mérés +0.05 kg
+        <input type="checkbox" id="preciseCheckbox_m" style="margin-right: 5px;">
+        -0.05 kg
+      <label style="display: flex; align-items: center;">
+        <input type="checkbox" id="preciseCheckbox_p" style="margin-right: 5px;">
+        +0.05 kg
       </label>
     </div>
 
@@ -133,7 +136,8 @@
 
     const output = document.getElementById("output");
     const debug = document.getElementById("debug");
-    const preciseCheckbox = document.getElementById("preciseCheckbox");
+    const preciseCheckbox_m = document.getElementById("preciseCheckbox_m");
+    const preciseCheckbox_p = document.getElementById("preciseCheckbox_p");
     const tareCheckbox = document.getElementById("tareCheckbox");
     const zsakSulySelect = document.getElementById("zsakSulySelect");
     const saveButton = document.getElementById("saveButton");
@@ -231,7 +235,11 @@
 
       let vegleges = mértSúly - zsakSuly;
 
-      if (preciseCheckbox.checked) {
+      if (preciseCheckbox_m.checked) {
+        vegleges -= 0.05;
+      }
+
+      if (preciseCheckbox_p.checked) {
         vegleges += 0.05;
       }
 
