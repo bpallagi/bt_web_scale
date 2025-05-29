@@ -16,9 +16,16 @@
           try {
             await device.connect();
             device.notify((data) => {
-              const { value, unit, timestamp } = data;
-              output.textContent = `Mért érték: ${value} ${unit} (${new Date(timestamp).toLocaleTimeString()})`;
+              console.log("Kapott adat:", data);
+
+              // Próbáljuk végig többféleképpen
+              const val = data?.value ?? data?.measurement ?? JSON.stringify(data);
+              const unit = data?.unit ?? '';
+              const time = data?.timestamp ?? data?.time ?? '';
+
+              output.textContent = `Mért érték: ${val} ${unit} (${new Date(time).toLocaleTimeString()})`;
           });
+
           } catch (e) {
             output.textContent = `Hiba: ${e.message}`;
           }
