@@ -44,6 +44,7 @@
     label {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       margin-top: 12px;
       font-weight: bold;
       user-select: none;
@@ -68,25 +69,38 @@
       background-color: #f8d7da;
       color: #721c24;
     }
+    .checkbox-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .checkbox-row label {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>⚖️ Hal Mérleglő</h2>
+
+    <input type="text" id="anglerName" placeholder="👤 Horgász neve">
+    <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
+
     <button onclick="csatlakozas()">🔗 Csatlakozás a mérleghez</button>
     <button onclick="ellenoriz()" id="ellenorizBtn" disabled>🔍 Ellenőrzés</button>
 
     <div id="output" class="message"></div>
 
-    <!-- Új input mezők -->
-    <input type="text" id="anglerName" placeholder="👤 Horgász neve">
-    <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
-
-    <!-- Mérleglőzsák levonás -->
-    <label><input type="checkbox" id="levonasCheckbox"> Mérleglőzsák visszamérése</label>
+    <div class="checkbox-row">
+      <label>
+        <input type="checkbox" id="levonasCheckbox"> Mérleglőzsák visszamérése
+      </label>
+      <label>
+        <input type="checkbox" id="preciseCheckbox"> Precíz mérés +0.05 kg
+      </label>
+    </div>
     <select id="zsakSulySelect" style="display:none;"></select>
 
-    <!-- Gomb -->
     <button id="saveButton" onclick="saveData()" disabled>💾 Mentés</button>
 
     <div id="veglegesSuly" class="message" style="display:none;"></div>
@@ -100,12 +114,10 @@
     const debug = document.getElementById("debug");
     const ellenorizBtn = document.getElementById("ellenorizBtn");
     const levonasCheckbox = document.getElementById("levonasCheckbox");
+    const preciseCheckbox = document.getElementById("preciseCheckbox");
     const zsakSulySelect = document.getElementById("zsakSulySelect");
     const saveButton = document.getElementById("saveButton");
     const veglegesSulyDiv = document.getElementById("veglegesSuly");
-
-    const anglerNameInput = document.getElementById("anglerName");
-    const catchLocationInput = document.getElementById("catchLocation");
 
     let device;
     let utolsoAdat = null;
@@ -126,11 +138,7 @@
     }
 
     levonasCheckbox.addEventListener('change', () => {
-      if (levonasCheckbox.checked) {
-        zsakSulySelect.style.display = 'block';
-      } else {
-        zsakSulySelect.style.display = 'none';
-      }
+      zsakSulySelect.style.display = levonasCheckbox.checked ? 'block' : 'none';
     });
 
     async function csatlakozas() {
@@ -206,16 +214,21 @@
       }
 
       let vegleges = mértSúly - zsakSuly;
-      if (vegleges < 0) vegleges = 0;
 
-      const anglerName = anglerNameInput.value.trim();
-      const catchLocation = catchLocationInput.value.trim();
+      if (preciseCheckbox.checked) {
+        vegleges += 0.05;
+      }
+
+      if (vegleges < 0) vegleges = 0;
 
       veglegesSulyDiv.style.display = "block";
       veglegesSulyDiv.className = "message success";
-      veglegesSulyDiv.textContent = `✅ Nettó súly: ${vegleges.toFixed(2)} kg\n👤 ${anglerName}\n📍 ${catchLocation}`;
-      
-      // Itt lehet majd továbbfejleszteni: Google Sheets mentés stb.
+      veglegesSulyDiv.textContent = `✅ Nettó súly: ${vegleges.toFixed(2)} kg`;
+
+      // További adatmentés logikát ide lehet beírni
+      const horgaszNev = document.getElementById("anglerName").value;
+      const fogasHelye = document.getElementById("catchLocation").value;
+      console.log("Mentés:", { horgaszNev, fogasHelye, vegleges });
     }
 
     window.csatlakozas = csatlakozas;
