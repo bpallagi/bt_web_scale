@@ -2,148 +2,128 @@
 <html>
 <head>
   <base target="_top">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WH-C06 Mérleg Integráció</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f2f2f2;
-      color: #333;
+      font-family: 'Arial', sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
     }
     .container {
+      width: 100%;
       max-width: 450px;
       margin: auto;
       background: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      text-align: center;
     }
     h2 {
-      margin-bottom: 15px;
+      text-align: center;
+      color: #333;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
     }
     button {
-      font-size: 16px;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
       background-color: #4CAF50;
       color: white;
+      font-size: 16px;
       cursor: pointer;
-      margin-top: 15px;
-      width: 100%;
     }
     button:hover {
       background-color: #45a049;
     }
-    #massValue {
-      font-size: 48px;
+    .message {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 8px;
       font-weight: bold;
-      margin-top: 25px;
+      text-align: center;
+      white-space: pre-wrap;
     }
-    #debugMassData {
-      font-size: 14px;
-      color: #555;
-      margin-top: 10px;
-      text-align: left;
-      white-space: pre-line;
-      border-top: 1px solid #ddd;
-      padding-top: 10px;
+    .success {
+      background-color: #d4edda;
+      color: #155724;
     }
-    #status {
-      margin-top: 15px;
-      font-weight: bold;
-      color: #d35400;
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>WH-C06 Mérleg Integráció</h2>
-    <button id="connectBtn">Bluetooth kapcsolat</button>
-    <div id="status"></div>
-    <div id="massValue">-- kg</div>
-    <div id="debugMassData"></div>
+    <h2>⚖️ Bluetooth Mérleg Olvasó</h2>
+    <button onclick="csatlakozas()">🔗 Csatlakozás a mérleghez</button>
+    <button onclick="ellenoriz()" id="ellenorizBtn" disabled>🔍 Ellenőrzés</button>
+    <div id="output" class="message"></div>
+    <div id="debug" class="message" style="display:none;"></div>
   </div>
 
-  <script>
-    const connectBtn = document.getElementById('connectBtn');
-    const statusDiv = document.getElementById('status');
-    const massValueDiv = document.getElementById('massValue');
-    const debugDiv = document.getElementById('debugMassData');
+  <script type="module">
+    import { WHC06 } from 'https://unpkg.com/@hangtime/grip-connect@latest?module';
+
+    const output = document.getElementById("output");
+    const debug = document.getElementById("debug");
+    const ellenorizBtn = document.getElementById("ellenorizBtn");
 
     let device;
-    let server;
-    let characteristic;
+    let utolsoAdat = null;
 
-    // A WH-C06 mérleg szolgáltatása és karakterisztikája (ezeket állítsd be, ha szükséges)
-    const serviceUUID = 0x181D; // Weight Scale service UUID (standard)
-    const characteristicUUID = 0x2A9D; // Weight Measurement characteristic UUID (standard)
-
-    connectBtn.addEventListener('click', async () => {
-      statusDiv.textContent = "Kapcsolódás folyamatban...";
+    async function csatlakozas() {
       try {
-        device = await navigator.bluetooth.requestDevice({
-          filters: [{ services: [serviceUUID] }]
-          // Ha nincs filter, lehet acceptAllDevices: true és manuális szűrés is
+        device = new WHC06();
+        await device.connect();
+
+        output.className = "message success";
+        output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
+        ellenorizBtn.disabled = false;
+        debug.style.display = "none";
+
+        device.notify((data) => {
+          console.log("Kapott adat:", data);
+          utolsoAdat = data;
+
+          const raw = parseFloat(data.massTotal);
+          if (!isNaN(raw)) {
+            const formatted = `${raw.toFixed(2)} kg`;
+            output.textContent = `⚖️ Mért érték: ${formatted}`;
+          } else {
+            output.textContent = "⚖️ Mért érték: Érvénytelen adat";
+          }
         });
-        device.addEventListener('gattserverdisconnected', onDisconnected);
 
-        server = await device.gatt.connect();
-
-        const service = await server.getPrimaryService(serviceUUID);
-        characteristic = await service.getCharacteristic(characteristicUUID);
-
-        await characteristic.startNotifications();
-        characteristic.addEventListener('characteristicvaluechanged', handleMeasurement);
-
-        statusDiv.textContent = "Csatlakozva és mérés fogadása indul.";
-      } catch (error) {
-        statusDiv.textContent = "Hiba a kapcsolódás során: " + error;
+      } catch (err) {
+        console.error(err);
+        output.className = "message error";
+        output.textContent = `❌ Hiba: ${err.message}`;
+        ellenorizBtn.disabled = true;
       }
-    });
-
-    function onDisconnected() {
-      statusDiv.textContent = "A mérleg lecsatlakozott.";
-      massValueDiv.textContent = "-- kg";
-      debugDiv.textContent = "";
     }
 
-    function handleMeasurement(event) {
-      const value = event.target.value;
-      // Ez egy DataView, be kell olvasni a súlyadatokat
-      // A WH-C06 eszköz adatszerkezete eltérhet, itt egy alap példa:
-
-      // Példa: az első byte a flags, utána 2 byte súly 0.005kg lépésben, stb.
-      // Ez konkrétan az official Weight Scale characteristic formátuma:
-      // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.weight_measurement.xml
-      const flags = value.getUint8(0);
-      let index = 1;
-      let weightKg;
-
-      // Ha 0.005kg a lépés és kg a mértékegység
-      if ((flags & 0x01) === 0) {
-        // SI units (kg)
-        const weightRaw = value.getUint16(index, /*littleEndian=*/true);
-        weightKg = weightRaw * 0.005;
-      } else {
-        // Imperial units (lb)
-        const weightRaw = value.getUint16(index, /*littleEndian=*/true);
-        weightKg = weightRaw * 0.01 / 2.20462;
+    function ellenoriz() {
+      if (!utolsoAdat) {
+        debug.style.display = "block";
+        debug.className = "message error";
+        debug.textContent = "❌ Nincs elérhető mérési adat az ellenőrzéshez.";
+        return;
       }
 
-      showMass(weightKg);
+      debug.style.display = "block";
+      debug.className = "message success";
+      debug.textContent = "ℹ️ Részletes nyers adatok:\n" + JSON.stringify(utolsoAdat, null, 2);
     }
 
-    function showMass(massKg) {
-      massValueDiv.textContent = massKg.toFixed(2) + " kg";
-
-      debugDiv.textContent =
-        `Mért tömeg (kg): ${massKg}\n` +
-        `Raw adat: ${characteristic ? characteristic.value : 'N/A'}`;
-    }
+    window.csatlakozas = csatlakozas;
+    window.ellenoriz = ellenoriz;
   </script>
 </body>
 </html>
