@@ -78,11 +78,16 @@
 
     <div id="output" class="message"></div>
 
+    <!-- Új input mezők -->
+    <input type="text" id="anglerName" placeholder="👤 Horgász neve">
+    <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
+
     <!-- Mérleglőzsák levonás -->
     <label><input type="checkbox" id="levonasCheckbox"> Mérleglőzsák visszamérése</label>
     <select id="zsakSulySelect" style="display:none;"></select>
 
-    <button onclick="fogasMentese()" id="mentesBtn" disabled>💾 Fogás mentése</button>
+    <!-- Gomb -->
+    <button id="saveButton" onclick="saveData()" disabled>💾 Mentés</button>
 
     <div id="veglegesSuly" class="message" style="display:none;"></div>
     <div id="debug" class="message" style="display:none;"></div>
@@ -96,13 +101,15 @@
     const ellenorizBtn = document.getElementById("ellenorizBtn");
     const levonasCheckbox = document.getElementById("levonasCheckbox");
     const zsakSulySelect = document.getElementById("zsakSulySelect");
-    const mentesBtn = document.getElementById("mentesBtn");
+    const saveButton = document.getElementById("saveButton");
     const veglegesSulyDiv = document.getElementById("veglegesSuly");
+
+    const anglerNameInput = document.getElementById("anglerName");
+    const catchLocationInput = document.getElementById("catchLocation");
 
     let device;
     let utolsoAdat = null;
 
-    // Lenyíló lista feltöltése 1.0 - 3.5 kg 0.1 kg lépésekkel
     function zsakSulyFeltolt() {
       zsakSulySelect.innerHTML = '';
       for (let w = 1.0; w <= 3.5; w += 0.1) {
@@ -112,7 +119,6 @@
         option.textContent = wFixed + " kg";
         zsakSulySelect.appendChild(option);
       }
-      // Előző választás betöltése localStorage-ból, ha van
       const elozoleg = localStorage.getItem('legutobbiZsakSuly');
       if (elozoleg) {
         zsakSulySelect.value = elozoleg;
@@ -135,7 +141,7 @@
         output.className = "message success";
         output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
         ellenorizBtn.disabled = false;
-        mentesBtn.disabled = false;
+        saveButton.disabled = false;
         debug.style.display = "none";
         veglegesSulyDiv.style.display = "none";
 
@@ -159,7 +165,7 @@
         output.className = "message error";
         output.textContent = `❌ Hiba: ${err.message}`;
         ellenorizBtn.disabled = true;
-        mentesBtn.disabled = true;
+        saveButton.disabled = true;
       }
     }
 
@@ -176,7 +182,7 @@
       debug.textContent = "ℹ️ Részletes nyers adatok:\n" + JSON.stringify(utolsoAdat, null, 2);
     }
 
-    function fogasMentese() {
+    function saveData() {
       if (!utolsoAdat) {
         veglegesSulyDiv.style.display = "block";
         veglegesSulyDiv.className = "message error";
@@ -196,21 +202,25 @@
       if (levonasCheckbox.checked) {
         zsakSuly = parseFloat(zsakSulySelect.value);
         if (isNaN(zsakSuly)) zsakSuly = 0;
-        // Mentjük localStorage-ba az utolsó választást
         localStorage.setItem('legutobbiZsakSuly', zsakSuly.toFixed(1));
       }
 
       let vegleges = mértSúly - zsakSuly;
       if (vegleges < 0) vegleges = 0;
 
+      const anglerName = anglerNameInput.value.trim();
+      const catchLocation = catchLocationInput.value.trim();
+
       veglegesSulyDiv.style.display = "block";
       veglegesSulyDiv.className = "message success";
-      veglegesSulyDiv.textContent = `✅ Nettó súly: ${vegleges.toFixed(2)} kg`;
+      veglegesSulyDiv.textContent = `✅ Nettó súly: ${vegleges.toFixed(2)} kg\n👤 ${anglerName}\n📍 ${catchLocation}`;
+      
+      // Itt lehet majd továbbfejleszteni: Google Sheets mentés stb.
     }
 
     window.csatlakozas = csatlakozas;
     window.ellenoriz = ellenoriz;
-    window.fogasMentese = fogasMentese;
+    window.saveData = saveData;
   </script>
 </body>
 </html>
