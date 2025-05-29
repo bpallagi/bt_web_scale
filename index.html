@@ -15,9 +15,10 @@
 
           try {
             await device.connect();
-            device.notify((value) => {
-              output.textContent = `Mért érték: ${value}`;
-            });
+            device.notify((data) => {
+              const { value, unit, timestamp } = data;
+              output.textContent = `Mért érték: ${value} ${unit} (${new Date(timestamp).toLocaleTimeString()})`;
+          });
           } catch (e) {
             output.textContent = `Hiba: ${e.message}`;
           }
