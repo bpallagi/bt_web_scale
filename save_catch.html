@@ -134,7 +134,12 @@
 
       let device;
       let utolsoAdat = null;
-
+      
+      function showMessage(text, type) {
+        output.innerHTML = text;
+        output.className = "message " + type;
+      }
+      
       async function csatlakozas() {
         try {
           device = new WHC06();
@@ -234,7 +239,7 @@
           catchLocation
         };
       
-        fetch("https://script.google.com/macros/s/AKfycbz436DUdBKk3RzDqPCeYkeKxOaD9CUK6SZSLlCPNn4P0EuIEb_yQcAYUUJpjPVaZN-7/exec", {
+        fetch('https://script.google.com/macros/s/AKfycbz436DUdBKk3RzDqPCeYkeKxOaD9CUK6SZSLlCPNn4P0EuIEb_yQcAYUUJpjPVaZN-7/exec', {
           method: 'POST',
           body: JSON.stringify({
             chipNumber,
@@ -271,7 +276,7 @@
           saveButton.disabled = false;
         });
       }
-      
+
       function clearForm() {
         document.getElementById("chipNumber").value = "";
         document.getElementById("fishWeight").value = "";
