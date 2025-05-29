@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <base target="_top">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
       body {
@@ -90,6 +91,7 @@
       <input type="number" id="fishWeight" placeholder="⚖️ Hal súlya (kg)" step="0.1" min="10">
       <input type="text" id="anglerName" placeholder="👤 Horgász neve">
       <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
+      <button type="button" onclick="connectBluetooth()">📡 Csatlakozás a mérleghez</button>
 
       <div class="options-row">
         <label>
@@ -98,12 +100,71 @@
         </label>
       </div>
       <select id="tareWeightSelect"></select>
-
+      <div>
+        <button type="button" onclick="adjustWeight(-0.05)">➖ 0.05 kg</button>
+        <button type="button" onclick="adjustWeight(0.05)">➕ 0.05 kg</button>
+      </div>
       <button id="saveButton" onclick="saveData()">💾 Mentés</button>
       <div id="message"></div>
     </div>
 
     <script>
+      let bluetoothDevice;
+      let weightCharacteristic;
+      
+      async function connectBluetooth() {
+        try {
+          bluetoothDevice = await navigator.bluetooth.requestDevice({
+            filters: [{ namePrefix: 'WH-C06' }],
+            optionalServices: [0xfff0]
+          });
+      
+          const server = await bluetoothDevice.gatt.connect();
+          const service = await server.getPrimaryService(0xfff0);
+          weightCharacteristic = await service.getCharacteristic(0xfff1);
+      
+          await weightCharacteristic.startNotifications();
+          weightCharacteristic.addEventListener('characteristicvaluechanged', handleBluetoothData);
+      
+          alert("✅ Kapcsolódva a mérleghez!");
+        } catch (error) {
+          console.error('Bluetooth hiba:', error);
+          alert("⚠️ Nem sikerült kapcsolódni a mérleghez.");
+        }
+      }
+      
+      function handleBluetoothData(event) {
+        const value = event.target.value;
+        let data = [];
+      
+        for (let i = 0; i < value.byteLength; i++) {
+          data.push(value.getUint8(i));
+        }
+      
+        const weight = parseWeightData(data);
+        if (!isNaN(weight)) {
+          document.getElementById("Hal_Suly").value = weight.toFixed(2);
+          updateSulyKulonbseg(); // ha van ilyen függvényed, ami újraszámolja a súlykülönbséget
+        }
+      }
+      
+      function parseWeightData(data) {
+        // Például: WH-C06 0xFF adatcsomag: [0xFF, 0x0B, 0xB8] = 3000 = 3.00kg
+        if (data.length >= 3 && data[0] === 0xFF) {
+          const raw = (data[1] << 8) | data[2];
+          return raw / 1000.0;
+        }
+        return NaN;
+      }
+      
+      function adjustWeight(diff) {
+        const input = document.getElementById("Hal_Suly");
+        let current = parseFloat(input.value) || 0;
+        current += diff;
+        input.value = current.toFixed(2);
+        updateSulyKulonbseg?.(); // ha létezik
+      }
+      
       // Tare listagenerálás
       const tareSelect = document.getElementById("tareWeightSelect");
       for (let w = 0.7; w <= 3.5; w += 0.01) {
@@ -112,8 +173,11 @@
         tareSelect.add(option);
       }
 
+      // Korábban kiválasztott érték visszatöltése
       const savedTareWeight = localStorage.getItem("tareWeight");
-      if (savedTareWeight) tareSelect.value = savedTareWeight;
+      if (savedTareWeight) {
+        tareSelect.value = savedTareWeight;
+      }
 
       document.getElementById("tareCheckbox").addEventListener("change", function () {
         tareSelect.style.display = this.checked ? "block" : "none";
