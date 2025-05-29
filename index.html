@@ -1,241 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="hu">
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>⚖️ Hal Mérleglő</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f2f2f2;
-      margin: 0;
-      padding: 20px;
-      box-sizing: border-box;
+      background-color: #f5f5f5;
     }
     .container {
-      width: 100%;
-      max-width: 450px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin-top: 40px;
     }
-    h2 {
-      text-align: center;
-      color: #333;
+    .card {
+      border-radius: 15px;
     }
-    input, button, select {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
-    button {
+    .btn-green {
       background-color: #4CAF50;
       color: white;
-      cursor: pointer;
     }
-    button:hover {
-      background-color: #45a049;
-    }
-    label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 12px;
-      font-weight: bold;
-      user-select: none;
-    }
-    label input[type="checkbox"] {
-      margin-right: 10px;
-      width: auto;
-    }
-    .message {
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: bold;
-      text-align: center;
-      white-space: pre-wrap;
-    }
-    .success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    .error {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-    .checkbox-row {
+    .checkbox-group {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      padding: 0 10px;
+      margin-bottom: 10px;
     }
-    .checkbox-row label {
-      flex: 1;
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+    }
+    .checkbox-group input {
+      margin-right: 5px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>⚖️ Hal Mérleglő</h2>
+    <div class="card shadow p-4">
+      <h3 class="text-center mb-4">⚖️ Hal Mérleglő</h3>
+      
+      <div class="mb-3">
+        <label for="anglerName" class="form-label">👤 Horgász neve</label>
+        <input type="text" class="form-control" id="anglerName" placeholder="Horgász neve">
+      </div>
 
-    <input type="text" id="anglerName" placeholder="👤 Horgász neve">
-    <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
+      <div class="mb-3">
+        <label for="teamSelect" class="form-label">🥇 Csapatok</label>
+        <select class="form-select" id="teamSelect">
+          <option value="" selected disabled>Válassz csapatot</option>
+          <!-- Csapatok 1-24 -->
+          ${[...Array(24)].map((_, i) => `<option value="${i + 1}">Csapat ${i + 1}</option>`).join('')}
+        </select>
+      </div>
 
-    <button onclick="csatlakozas()">🔗 Csatlakozás a mérleghez</button>
-    <button onclick="ellenoriz()" id="ellenorizBtn" disabled>🔍 Ellenőrzés</button>
+      <div class="d-grid gap-2 mb-3">
+        <button class="btn btn-green" id="connectButton">🔗 Csatlakozás a mérleghez</button>
+      </div>
 
-    <div id="output" class="message"></div>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" id="tareCheckbox">
+          Mérleglőzsák visszamérése
+        </label>
+        <label>
+          <input type="checkbox" id="preciseCheckbox">
+          Precíz mérés +0.05 kg
+        </label>
+      </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-      <label style="display: flex; align-items: center;">
-        <input type="checkbox" id="tareCheckbox" style="margin-right: 5px;">
-        Mérleglőzsák visszamérése
-      </label>
-      <label style="display: flex; align-items: center;">
-        <input type="checkbox" id="preciseCheckbox" style="margin-right: 5px;">
-        Precíz mérés +0.05 kg
-      </label>
+      <div class="d-grid">
+        <button class="btn btn-green" id="saveButton">💾 Mentés</button>
+      </div>
     </div>
-    <select id="zsakSulySelect" style="display:none;"></select>
-
-    <button id="saveButton" onclick="saveData()" disabled>💾 Mentés</button>
-
-    <div id="veglegesSuly" class="message" style="display:none;"></div>
-    <div id="debug" class="message" style="display:none;"></div>
   </div>
-
-  <script type="module">
-    import { WHC06 } from 'https://unpkg.com/@hangtime/grip-connect@latest?module';
-
-    const output = document.getElementById("output");
-    const debug = document.getElementById("debug");
-    const ellenorizBtn = document.getElementById("ellenorizBtn");
-    const levonasCheckbox = document.getElementById("levonasCheckbox");
-    const preciseCheckbox = document.getElementById("preciseCheckbox");
-    const zsakSulySelect = document.getElementById("zsakSulySelect");
-    const saveButton = document.getElementById("saveButton");
-    const veglegesSulyDiv = document.getElementById("veglegesSuly");
-
-    let device;
-    let utolsoAdat = null;
-
-    function zsakSulyFeltolt() {
-      zsakSulySelect.innerHTML = '';
-      for (let w = 1.0; w <= 3.5; w += 0.1) {
-        const wFixed = w.toFixed(1);
-        const option = document.createElement('option');
-        option.value = wFixed;
-        option.textContent = wFixed + " kg";
-        zsakSulySelect.appendChild(option);
-      }
-      const elozoleg = localStorage.getItem('legutobbiZsakSuly');
-      if (elozoleg) {
-        zsakSulySelect.value = elozoleg;
-      }
-    }
-
-    levonasCheckbox.addEventListener('change', () => {
-      zsakSulySelect.style.display = levonasCheckbox.checked ? 'block' : 'none';
-    });
-
-    async function csatlakozas() {
-      try {
-        device = new WHC06();
-        await device.connect();
-
-        output.className = "message success";
-        output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
-        ellenorizBtn.disabled = false;
-        saveButton.disabled = false;
-        debug.style.display = "none";
-        veglegesSulyDiv.style.display = "none";
-
-        zsakSulyFeltolt();
-
-        device.notify((data) => {
-          console.log("Kapott adat:", data);
-          utolsoAdat = data;
-
-          const raw = parseFloat(data.massTotal);
-          if (!isNaN(raw)) {
-            const formatted = `${raw.toFixed(2)} kg`;
-            output.textContent = `⚖️ Súly: ${formatted}`;
-          } else {
-            output.textContent = "⚖️ Súly: Érvénytelen adat";
-          }
-        });
-
-      } catch (err) {
-        console.error(err);
-        output.className = "message error";
-        output.textContent = `❌ Hiba: ${err.message}`;
-        ellenorizBtn.disabled = true;
-        saveButton.disabled = true;
-      }
-    }
-
-    function ellenoriz() {
-      if (!utolsoAdat) {
-        debug.style.display = "block";
-        debug.className = "message error";
-        debug.textContent = "❌ Nincs elérhető mérési adat az ellenőrzéshez.";
-        return;
-      }
-
-      debug.style.display = "block";
-      debug.className = "message success";
-      debug.textContent = "ℹ️ Részletes nyers adatok:\n" + JSON.stringify(utolsoAdat, null, 2);
-    }
-
-    function saveData() {
-      if (!utolsoAdat) {
-        veglegesSulyDiv.style.display = "block";
-        veglegesSulyDiv.className = "message error";
-        veglegesSulyDiv.textContent = "❌ Nincs mérési adat a mentéshez!";
-        return;
-      }
-
-      let mértSúly = parseFloat(utolsoAdat.massTotal);
-      if (isNaN(mértSúly)) {
-        veglegesSulyDiv.style.display = "block";
-        veglegesSulyDiv.className = "message error";
-        veglegesSulyDiv.textContent = "❌ Érvénytelen mérési adat!";
-        return;
-      }
-
-      let zsakSuly = 0;
-      if (levonasCheckbox.checked) {
-        zsakSuly = parseFloat(zsakSulySelect.value);
-        if (isNaN(zsakSuly)) zsakSuly = 0;
-        localStorage.setItem('legutobbiZsakSuly', zsakSuly.toFixed(1));
-      }
-
-      let vegleges = mértSúly - zsakSuly;
-
-      if (preciseCheckbox.checked) {
-        vegleges += 0.05;
-      }
-
-      if (vegleges < 0) vegleges = 0;
-
-      veglegesSulyDiv.style.display = "block";
-      veglegesSulyDiv.className = "message success";
-      veglegesSulyDiv.textContent = `✅ Nettó súly: ${vegleges.toFixed(2)} kg`;
-
-      // További adatmentés logikát ide lehet beírni
-      const horgaszNev = document.getElementById("anglerName").value;
-      const fogasHelye = document.getElementById("catchLocation").value;
-      console.log("Mentés:", { horgaszNev, fogasHelye, vegleges });
-    }
-
-    window.csatlakozas = csatlakozas;
-    window.ellenoriz = ellenoriz;
-    window.saveData = saveData;
-  </script>
 </body>
 </html>
