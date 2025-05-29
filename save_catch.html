@@ -159,7 +159,6 @@
             if (!isNaN(raw)) {
               const formatted = `${raw.toFixed(2)} kg`;
               output.textContent = `⚖️ Súly: ${formatted}`;
-              let fishWeight = ${formatted};
             } else {
               output.textContent = "⚖️ Súly: Érvénytelen adat";
             }
@@ -200,9 +199,8 @@
         saveButton.disabled = true;
 
         const chipNumber = document.getElementById("chipNumber").value.trim();
-        if (isNaN(fishWeight)) {
-          let fishWeight = parseFloat(document.getElementById("fishWeight").value);
-        }
+        const fishWeightInput = document.getElementById("fishWeight").value;
+        let fishWeight = parseFloat(fishWeightInput);
         const anglerName = document.getElementById("anglerName").value.trim();
         const catchLocation = document.getElementById("catchLocation").value.trim();
         const useTare = document.getElementById("tareCheckbox").checked;
