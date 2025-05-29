@@ -105,7 +105,6 @@
       <input type="text" id="anglerName" placeholder="👤 Horgász neve">
       <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
       <button onclick="csatlakozas()">🛜 Csatlakozás a mérleghez</button>
-      <div style="display: flex; justify-content: id="output" class="message"; padding: 0 10px;></div>
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
         <label style="display: flex; align-items: center;">
           <input type="checkbox" id="tareCheckbox" style="margin-right: 5px;">
@@ -122,11 +121,14 @@
       </div>
       <select id="tareWeightSelect"></select>
       <button id="saveButton" onclick="saveData()">💾 Mentés</button>
-      
+      <div id="message"></div>
+    </div>
+    
     <script type="module">
       import { WHC06 } from 'https://unpkg.com/@hangtime/grip-connect@latest?module';
 
-      const output = document.getElementById("output");
+      const output = document.getElementById("message");
+      const weight = document.getElementById("fishWeight");
       const preciseCheckbox_m = document.getElementById("preciseCheckbox_m");
       const preciseCheckbox_p = document.getElementById("preciseCheckbox_p");
       const sulyDiv = document.getElementById("fishWeight");
@@ -152,6 +154,7 @@
             if (!isNaN(raw)) {
               const formatted = `${raw.toFixed(2)} kg`;
               output.textContent = `⚖️ Súly: ${formatted}`;
+              weight.textContent = `${formatted}`;
             } else {
               output.textContent = "⚖️ Súly: Érvénytelen adat";
             }
