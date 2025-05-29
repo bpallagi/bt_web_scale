@@ -1,41 +1,100 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>WH-C06 Bluetooth mérleg</title>
-    <script type="module">
-      import { WHC06 } from "https://unpkg.com/@hangtime/grip-connect?module";
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .container {
+      width: 100%;
+      max-width: 450px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .message {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>⚖️ Bluetooth Mérleg Olvasó</h2>
+    <button onclick="csatlakozas()">🔗 Csatlakozás a mérleghez</button>
+    <div id="output" class="message"></div>
+  </div>
 
-      document.addEventListener("DOMContentLoaded", () => {
-        const connectBtn = document.getElementById("connectBtn");
-        const output = document.getElementById("output");
+  <script type="module">
+    import { WHC06 } from 'https://unpkg.com/@hangtime/grip-connect@latest?module';
 
-        connectBtn.addEventListener("click", async () => {
-          const device = new WHC06();
+    const output = document.getElementById("output");
 
-          try {
-            await device.connect();
-            device.notify((data) => {
-              console.log("Kapott adat:", data);
+    async function csatlakozas() {
+      try {
+        const device = new WHC06();
+        await device.connect();
 
-              // Próbáljuk végig többféleképpen
-              const val = data?.value ?? data?.measurement ?? JSON.stringify(data);
-              const unit = data?.unit ?? '';
-              const time = data?.timestamp ?? data?.time ?? '';
+        output.className = "message success";
+        output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
 
-              output.textContent = `Mért érték: ${val} ${unit} (${new Date(time).toLocaleTimeString()})`;
-          });
+        device.notify((data) => {
+          console.log("Kapott adat:", data);
 
-          } catch (e) {
-            output.textContent = `Hiba: ${e.message}`;
-          }
+          const raw = parseFloat(data.massTotal);
+          const formatted = `${raw.toFixed(2)} kg`;
+
+          output.textContent = `⚖️ Mért érték: ${formatted}`;
         });
-      });
-    </script>
-  </head>
-  <body>
-    <h1>WH-C06 mérés</h1>
-    <button id="connectBtn">Csatlakozás a mérleghez</button>
-    <p id="output">Nincs adat</p>
-  </body>
+
+      } catch (err) {
+        console.error(err);
+        output.className = "message error";
+        output.textContent = `❌ Hiba: ${err.message}`;
+      }
+    }
+
+    window.csatlakozas = csatlakozas;
+  </script>
+</body>
 </html>
