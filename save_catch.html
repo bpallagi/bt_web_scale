@@ -200,7 +200,9 @@
         saveButton.disabled = true;
 
         const chipNumber = document.getElementById("chipNumber").value.trim();
-        let fishWeight = parseFloat(document.getElementById("fishWeight").value);
+        if (isNaN(fishWeight)) {
+          let fishWeight = parseFloat(document.getElementById("fishWeight").value);
+        }
         const anglerName = document.getElementById("anglerName").value.trim();
         const catchLocation = document.getElementById("catchLocation").value.trim();
         const useTare = document.getElementById("tareCheckbox").checked;
