@@ -226,35 +226,50 @@
         }
 
         fishWeight = parseFloat(fishWeight.toFixed(2));
-
-        google.script.run.withSuccessHandler(function(response) {
-          if (response.message.includes("Nem található")) {
-            showMessage("🚫 " + response.message, "error");
-          } else {
-            let diffMsg = "";
-            if (response.weightDifference !== null) {
-              const diff = parseFloat(response.weightDifference);
-              if (diff > 0) {
-                diffMsg = ` 📈 <span style="color:green;">+${diff.toFixed(2)} kg</span>`;
-              } else if (diff < 0) {
-                diffMsg = ` 📉 <span style="color:red;">${diff.toFixed(2)} kg</span>`;
-              }
+        
+      const payload = {
+        chipNumber,
+        fishWeight,
+        anglerName,
+        catchLocation
+      };
+      
+      fetch('https://script.google.com/macros/s/AKfycbz436DUdBKk3RzDqPCeYkeKxOaD9CUK6SZSLlCPNn4P0EuIEb_yQcAYUUJpjPVaZN-7/exec', {
+        method: 'POST',
+        body: JSON.stringify({
+          chipNumber,
+          fishWeight,
+          anglerName,
+          location
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.message.includes("Nem található")) {
+          showMessage("🚫 " + response.message, "error");
+        } else {
+          let diffMsg = "";
+          if (response.weightDifference !== null) {
+            const diff = parseFloat(response.weightDifference);
+            if (diff > 0) {
+              diffMsg = ` 📈 <span style="color:green;">+${diff.toFixed(2)} kg</span>`;
+            } else if (diff < 0) {
+              diffMsg = ` 📉 <span style="color:red;">${diff.toFixed(2)} kg</span>`;
             }
-            showMessage(response.message + "<br> Súly különbség:" + diffMsg, "success");
-            clearForm();
           }
-          saveButton.disabled = false;
-        }).withFailureHandler(function(error) {
-          showMessage("⚠️ Hiba történt: " + error.message, "error");
-          saveButton.disabled = false;
-        }).saveCatchData(chipNumber, fishWeight, anglerName, catchLocation);
-      }
-
-      function showMessage(text, type) {
-        const messageDiv = document.getElementById("message");
-        messageDiv.innerHTML = text;
-        messageDiv.className = "message " + type;
-      }
+          showMessage(response.message + "<br> Súly különbség:" + diffMsg, "success");
+          clearForm();
+        }
+      })
+      .catch(error => {
+        showMessage("⚠️ Hiba történt: " + error.message, "error");
+      })
+      .finally(() => {
+        saveButton.disabled = false;
+      });
 
       function clearForm() {
         document.getElementById("chipNumber").value = "";
