@@ -94,7 +94,7 @@
 
           const raw = parseFloat(data.massTotal);
           if (!isNaN(raw)) {
-            const formatted = `${raw.toFixed(2)} kg`;
+            const formatted = `${raw.toFixed(1)} kg`;
             output.textContent = `⚖️ Mért érték: ${formatted}`;
           } else {
             output.textContent = "⚖️ Mért érték: Érvénytelen adat";
