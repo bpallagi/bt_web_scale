@@ -233,17 +233,15 @@
 
         fishWeight = parseFloat(fishWeight.toFixed(2));
             
+        const formData = new URLSearchParams();
+        formData.append("chipNumber", chipNumber);
+        formData.append("fishWeight", fishWeight);
+        formData.append("anglerName", anglerName);
+        formData.append("catchLocation", catchLocation);
+        
         fetch('https://script.google.com/macros/s/AKfycbz436DUdBKk3RzDqPCeYkeKxOaD9CUK6SZSLlCPNn4P0EuIEb_yQcAYUUJpjPVaZN-7/exec', {
           method: 'POST',
-          body: JSON.stringify({
-            chipNumber,
-            fishWeight,
-            anglerName,
-            catchLocation
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: formData
         })
         .then(res => res.json())
         .then(response => {
