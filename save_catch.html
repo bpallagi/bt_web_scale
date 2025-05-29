@@ -131,7 +131,6 @@
       const weight = document.getElementById("fishWeight");
       const preciseCheckbox_m = document.getElementById("preciseCheckbox_m");
       const preciseCheckbox_p = document.getElementById("preciseCheckbox_p");
-      //const sulyDiv = document.getElementById("fishWeight");
 
       let device;
       let utolsoAdat = null;
@@ -144,7 +143,7 @@
           output.className = "message success";
           output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
           saveButton.disabled = false;
-          //sulyDiv.style.display = "none";
+          weight.style.display = "none";
           
           device.notify((data) => {
             console.log("Kapott adat:", data);
