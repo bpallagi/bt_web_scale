@@ -240,7 +240,7 @@
         formData.append("catchLocation", catchLocation);
         
         fetch('https://script.google.com/macros/s/AKfycbz436DUdBKk3RzDqPCeYkeKxOaD9CUK6SZSLlCPNn4P0EuIEb_yQcAYUUJpjPVaZN-7/exec', {
-          method: 'POST',
+          method: 'GET',
           body: formData
         })
         .then(res => res.json())
