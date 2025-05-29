@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .container {
+        width: 100%;
+        max-width: 450px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+      }
+      input, button, select {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #4CAF50;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .message {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-align: center;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .icon {
+        font-size: 24px;
+        vertical-align: middle;
+        margin-right: 5px;
+      }
+      .options-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .options-row label {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+      }
+      .options-row input {
+        width: auto;
+        margin-right: 5px;
+      }
+      #tareWeightSelect {
+        display: none;
+        margin: 5px 0 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>🎣 Fogás rögzítése 🐠</h2>
+      <input type="text" id="chipNumber" placeholder="#️⃣ Chip szám (6–15 karakter)" pattern=".{6,15}" title="A chip számnak legalább 6, legfeljebb 15 karakteresnek kell lennie" required>
+      <input type="number" id="fishWeight" placeholder="⚖️ Hal súlya (kg)" step="0.1" min="10">
+      <input type="text" id="anglerName" placeholder="👤 Horgász neve">
+      <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
+
+      <div class="options-row">
+        <label>
+          <input type="checkbox" id="tareCheckbox">
+          Mérleglőzsák visszamérése
+        </label>
+      </div>
+      <select id="tareWeightSelect"></select>
+
+      <button id="saveButton" onclick="saveData()">💾 Mentés</button>
+      <div id="message"></div>
+    </div>
+
+    <script>
+      // Tare listagenerálás
+      const tareSelect = document.getElementById("tareWeightSelect");
+      for (let w = 0.7; w <= 3.5; w += 0.01) {
+        let option = document.createElement("option");
+        option.value = option.text = w.toFixed(2);
+        tareSelect.add(option);
+      }
+
+      const savedTareWeight = localStorage.getItem("tareWeight");
+      if (savedTareWeight) tareSelect.value = savedTareWeight;
+
+      document.getElementById("tareCheckbox").addEventListener("change", function () {
+        tareSelect.style.display = this.checked ? "block" : "none";
+      });
+
+      tareSelect.addEventListener("change", function () {
+        localStorage.setItem("tareWeight", this.value);
+      });
+
+      function saveData() {
+        const saveButton = document.getElementById("saveButton");
+        saveButton.disabled = true;
+
+        const chipNumber = document.getElementById("chipNumber").value.trim();
+        let fishWeight = parseFloat(document.getElementById("fishWeight").value);
+        const anglerName = document.getElementById("anglerName").value.trim();
+        const catchLocation = document.getElementById("catchLocation").value.trim();
+        const useTare = document.getElementById("tareCheckbox").checked;
+
+        if (!chipNumber || isNaN(fishWeight) || !anglerName || !catchLocation) {
+          showMessage("🚫 Minden mezőt ki kell tölteni!", "error");
+          saveButton.disabled = false;
+          return;
+        }
+
+        if (chipNumber.length < 6 || chipNumber.length > 15) {
+          showMessage("🚫 A chip számnak 6 és 15 karakter közöttinek kell lennie!", "error");
+          saveButton.disabled = false;
+          return;
+        }
+
+        if (useTare) {
+          const tareWeight = parseFloat(tareSelect.value);
+          if (!isNaN(tareWeight)) {
+            fishWeight -= tareWeight;
+          }
+        }
+        fishWeight = parseFloat(fishWeight.toFixed(2));
+
+        google.script.run.withSuccessHandler(function(response) {
+          if (response.message.includes("Nem található")) {
+            showMessage("🚫 " + response.message, "error");
+          } else {
+            let diffMsg = "";
+            if (response.weightDifference !== null) {
+              const diff = parseFloat(response.weightDifference);
+              if (diff > 0) {
+                diffMsg = ` 📈 <span style="color:green;">+${diff.toFixed(2)} kg</span>`;
+              } else if (diff < 0) {
+                diffMsg = ` 📉 <span style="color:red;">${diff.toFixed(2)} kg</span>`;
+              }
+            }
+            showMessage(response.message + "<br> Súly különbség:" + diffMsg, "success");
+            clearForm();
+          }
+          saveButton.disabled = false;
+        }).withFailureHandler(function(error) {
+          showMessage("⚠️ Hiba történt: " + error.message, "error");
+          saveButton.disabled = false;
+        }).saveCatchData(chipNumber, fishWeight, anglerName, catchLocation);
+      }
+
+      function showMessage(text, type) {
+        const messageDiv = document.getElementById("message");
+        messageDiv.innerHTML = text;
+        messageDiv.className = "message " + type;
+      }
+
+      function clearForm() {
+        document.getElementById("chipNumber").value = "";
+        document.getElementById("fishWeight").value = "";
+        document.getElementById("anglerName").value = "";
+        document.getElementById("catchLocation").value = "";
+        document.getElementById("tareCheckbox").checked = false;
+        tareSelect.style.display = "none";
+      }
+    </script>
+  </body>
+</html>
