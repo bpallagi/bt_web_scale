@@ -100,9 +100,9 @@
     <h2>⚖️ Hal Mérleglő</h2>
 
     <input type="text" id="anglerName" placeholder="👤 Horgász neve">
-    <select id="catchLocation">
-      <option value="" disabled selected>🥇 Csapatok</option>
-      ${[...Array(24)].map((_, i) => `<option value="Csapat ${i + 1}">Csapat ${i + 1}</option>`).join('')}
+
+    <select id="teamSelect">
+      <option value="">🥇 Csapat kiválasztása</option>
     </select>
 
     <button onclick="csatlakozas()">🔗 Csatlakozás a mérleghez</button>
@@ -119,6 +119,7 @@
         Precíz mérés +0.05 kg
       </label>
     </div>
+
     <select id="zsakSulySelect" style="display:none;"></select>
 
     <button id="saveButton" onclick="saveData()" disabled>💾 Mentés</button>
@@ -132,11 +133,12 @@
 
     const output = document.getElementById("output");
     const debug = document.getElementById("debug");
+    const preciseCheckbox = document.getElementById("preciseCheckbox");
+    const tareCheckbox = document.getElementById("tareCheckbox");
     const zsakSulySelect = document.getElementById("zsakSulySelect");
     const saveButton = document.getElementById("saveButton");
     const veglegesSulyDiv = document.getElementById("veglegesSuly");
-    const preciseCheckbox = document.getElementById("preciseCheckbox");
-    const levonasCheckbox = document.getElementById("tareCheckbox");
+    const teamSelect = document.getElementById("teamSelect");
 
     let device;
     let utolsoAdat = null;
@@ -156,8 +158,17 @@
       }
     }
 
-    levonasCheckbox.addEventListener('change', () => {
-      zsakSulySelect.style.display = levonasCheckbox.checked ? 'block' : 'none';
+    function csapatListaFeltolt() {
+      for (let i = 1; i <= 24; i++) {
+        const option = document.createElement("option");
+        option.value = `Csapat ${i}`;
+        option.textContent = `Csapat ${i}`;
+        teamSelect.appendChild(option);
+      }
+    }
+
+    tareCheckbox.addEventListener('change', () => {
+      zsakSulySelect.style.display = tareCheckbox.checked ? 'block' : 'none';
     });
 
     async function csatlakozas() {
@@ -172,6 +183,7 @@
         veglegesSulyDiv.style.display = "none";
 
         zsakSulyFeltolt();
+        csapatListaFeltolt();
 
         device.notify((data) => {
           console.log("Kapott adat:", data);
@@ -211,7 +223,7 @@
       }
 
       let zsakSuly = 0;
-      if (levonasCheckbox.checked) {
+      if (tareCheckbox.checked) {
         zsakSuly = parseFloat(zsakSulySelect.value);
         if (isNaN(zsakSuly)) zsakSuly = 0;
         localStorage.setItem('legutobbiZsakSuly', zsakSuly.toFixed(1));
@@ -230,8 +242,8 @@
       veglegesSulyDiv.textContent = `✅ Nettó súly: ${vegleges.toFixed(2)} kg`;
 
       const horgaszNev = document.getElementById("anglerName").value;
-      const csapat = document.getElementById("catchLocation").value;
-      console.log("Mentés:", { horgaszNev, csapat, vegleges });
+      const csapatNev = document.getElementById("teamSelect").value;
+      console.log("Mentés:", { horgaszNev, csapatNev, vegleges });
     }
 
     window.csatlakozas = csatlakozas;
