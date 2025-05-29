@@ -239,7 +239,7 @@
         formData.append("anglerName", anglerName);
         formData.append("catchLocation", catchLocation);
         
-        fetch(URL, {
+        fetch('https://script.google.com/macros/s/AKfycbz436DUdBKk3RzDqPCeYkeKxOaD9CUK6SZSLlCPNn4P0EuIEb_yQcAYUUJpjPVaZN-7/exec', {
           redirect: "follow",
           method: "POST",
           body: formData.toString(), // A body-t URL-encoded formában küldjük
