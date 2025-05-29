@@ -146,7 +146,7 @@
     function zsakSulyFeltolt() {
       zsakSulySelect.innerHTML = '';
       for (let w = 0.5; w <= 5.0; w += 0.01) {
-        const wFixed = w.toFixed(1);
+        const wFixed = w.toFixed(2);
         const option = document.createElement('option');
         option.value = wFixed;
         option.textContent = wFixed + " kg";
