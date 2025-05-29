@@ -24,22 +24,33 @@
       text-align: center;
       color: #333;
     }
-    input, button {
+    input, button, select {
       width: 100%;
       padding: 12px;
       margin: 8px 0;
       border: 1px solid #ccc;
       border-radius: 8px;
       box-sizing: border-box;
+      font-size: 16px;
     }
     button {
       background-color: #4CAF50;
       color: white;
-      font-size: 16px;
       cursor: pointer;
     }
     button:hover {
       background-color: #45a049;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      margin-top: 12px;
+      font-weight: bold;
+      user-select: none;
+    }
+    label input[type="checkbox"] {
+      margin-right: 10px;
+      width: auto;
     }
     .message {
       margin-top: 20px;
@@ -64,7 +75,16 @@
     <h2>⚖️ Bluetooth Mérleg Olvasó</h2>
     <button onclick="csatlakozas()">🔗 Csatlakozás a mérleghez</button>
     <button onclick="ellenoriz()" id="ellenorizBtn" disabled>🔍 Ellenőrzés</button>
+
     <div id="output" class="message"></div>
+
+    <!-- Mérleglőzsák levonás -->
+    <label><input type="checkbox" id="levonasCheckbox"> Mérleglőzsák levonása</label>
+    <select id="zsakSulySelect" style="display:none;"></select>
+
+    <button onclick="fogasMentese()" id="mentesBtn" disabled>💾 Fogás mentése</button>
+
+    <div id="veglegesSuly" class="message" style="display:none;"></div>
     <div id="debug" class="message" style="display:none;"></div>
   </div>
 
@@ -74,9 +94,38 @@
     const output = document.getElementById("output");
     const debug = document.getElementById("debug");
     const ellenorizBtn = document.getElementById("ellenorizBtn");
+    const levonasCheckbox = document.getElementById("levonasCheckbox");
+    const zsakSulySelect = document.getElementById("zsakSulySelect");
+    const mentesBtn = document.getElementById("mentesBtn");
+    const veglegesSulyDiv = document.getElementById("veglegesSuly");
 
     let device;
     let utolsoAdat = null;
+
+    // Lenyíló lista feltöltése 1.0 - 2.5 kg 0.1 kg lépésekkel
+    function zsakSulyFeltolt() {
+      zsakSulySelect.innerHTML = '';
+      for (let w = 1.0; w <= 2.5; w += 0.1) {
+        const wFixed = w.toFixed(1);
+        const option = document.createElement('option');
+        option.value = wFixed;
+        option.textContent = wFixed + " kg";
+        zsakSulySelect.appendChild(option);
+      }
+      // Előző választás betöltése localStorage-ból, ha van
+      const elozoleg = localStorage.getItem('legutobbiZsakSuly');
+      if (elozoleg) {
+        zsakSulySelect.value = elozoleg;
+      }
+    }
+
+    levonasCheckbox.addEventListener('change', () => {
+      if (levonasCheckbox.checked) {
+        zsakSulySelect.style.display = 'block';
+      } else {
+        zsakSulySelect.style.display = 'none';
+      }
+    });
 
     async function csatlakozas() {
       try {
@@ -86,7 +135,11 @@
         output.className = "message success";
         output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
         ellenorizBtn.disabled = false;
+        mentesBtn.disabled = false;
         debug.style.display = "none";
+        veglegesSulyDiv.style.display = "none";
+
+        zsakSulyFeltolt();
 
         device.notify((data) => {
           console.log("Kapott adat:", data);
@@ -94,7 +147,7 @@
 
           const raw = parseFloat(data.massTotal);
           if (!isNaN(raw)) {
-            const formatted = `${raw.toFixed(1)} kg`;
+            const formatted = `${raw.toFixed(2)} kg`;
             output.textContent = `⚖️ Mért érték: ${formatted}`;
           } else {
             output.textContent = "⚖️ Mért érték: Érvénytelen adat";
@@ -106,6 +159,7 @@
         output.className = "message error";
         output.textContent = `❌ Hiba: ${err.message}`;
         ellenorizBtn.disabled = true;
+        mentesBtn.disabled = true;
       }
     }
 
@@ -122,8 +176,41 @@
       debug.textContent = "ℹ️ Részletes nyers adatok:\n" + JSON.stringify(utolsoAdat, null, 2);
     }
 
+    function fogasMentese() {
+      if (!utolsoAdat) {
+        veglegesSulyDiv.style.display = "block";
+        veglegesSulyDiv.className = "message error";
+        veglegesSulyDiv.textContent = "❌ Nincs mérési adat a mentéshez!";
+        return;
+      }
+
+      let mértSúly = parseFloat(utolsoAdat.massTotal);
+      if (isNaN(mértSúly)) {
+        veglegesSulyDiv.style.display = "block";
+        veglegesSulyDiv.className = "message error";
+        veglegesSulyDiv.textContent = "❌ Érvénytelen mérési adat!";
+        return;
+      }
+
+      let zsakSuly = 0;
+      if (levonasCheckbox.checked) {
+        zsakSuly = parseFloat(zsakSulySelect.value);
+        if (isNaN(zsakSuly)) zsakSuly = 0;
+        // Mentjük localStorage-ba az utolsó választást
+        localStorage.setItem('legutobbiZsakSuly', zsakSuly.toFixed(1));
+      }
+
+      let vegleges = mértSúly - zsakSuly;
+      if (vegleges < 0) vegleges = 0;
+
+      veglegesSulyDiv.style.display = "block";
+      veglegesSulyDiv.className = "message success";
+      veglegesSulyDiv.textContent = `✅ Végleges súly levonás után: ${vegleges.toFixed(2)} kg`;
+    }
+
     window.csatlakozas = csatlakozas;
     window.ellenoriz = ellenoriz;
+    window.fogasMentese = fogasMentese;
   </script>
 </body>
 </html>
