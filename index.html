@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WH-C06 mérleg olvasó</title>
+</head>
+<body>
+  <h1>🔗 WH-C06 Bluetooth mérleg</h1>
+  <button id="connectBtn">Csatlakozás a mérleghez</button>
+  <p><strong>Mért súly:</strong> <span id="weight">–</span></p>
+
+  <script>
+    const connectBtn = document.getElementById("connectBtn");
+    const weightSpan = document.getElementById("weight");
+
+    let device;
+    let characteristic;
+
+    connectBtn.addEventListener("click", async () => {
+      try {
+        device = await navigator.bluetooth.requestDevice({
+          filters: [{ namePrefix: 'IF_' }],
+          optionalServices: [0xFFF0, 0xFFE0] // Különböző firmwarek miatt próbáljuk mindkettőt
+        });
+
+        const server = await device.gatt.connect();
+        let service;
+        try {
+          service = await server.getPrimaryService(0xFFF0);
+        } catch {
+          service = await server.getPrimaryService(0xFFE0);
+        }
+
+        characteristic = await service.getCharacteristic(0xFFF4).catch(() =>
+          service.getCharacteristic(0xFFE1)
+        );
+
+        await characteristic.startNotifications();
+        characteristic.addEventListener('characteristicvaluechanged', handleWeightData);
+        console.log("✅ Csatlakozva a mérleghez");
+      } catch (error) {
+        console.error("❌ Hiba a kapcsolat során:", error);
+      }
+    });
+
+    function handleWeightData(event) {
+      const value = event.target.value;
+      const raw = Array.from(new Uint8Array(value.buffer));
+      console.log("🔢 Nyers adat:", raw);
+
+      // Példa: [0x02, 0x17, 0x02, 0x00, 0x00, 0x00, 0x00] => súly a 2. és 3. byteban
+      const weightGrams = raw[1] + (raw[2] << 8);
+      const weightKg = (weightGrams / 100).toFixed(2);
+      weightSpan.textContent = `${weightKg} kg`;
+    }
+  </script>
+</body>
+</html>
