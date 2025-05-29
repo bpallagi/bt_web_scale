@@ -34,7 +34,7 @@ Csapat kiválasztása
 Válaszd ki a megfelelő csapatot a „🥇 Csapat kiválasztása” menüből.
 
 Bluetooth kapcsolat
-Kattints a 🔗 Csatlakozás a mérleghez gombra, majd válaszd ki a WH-C06 mérleget.
+Kattints a 🛜 Csatlakozás a mérleghez gombra, majd válaszd ki a WH-C06 mérleget.
 
 Opciók (ha szükséges)
 
@@ -52,10 +52,4 @@ Nyomd meg a mentés gombot, az eredményeket a konzolban is naplózza.
 
 🛠️ Fejlesztési információk
 Web Bluetooth API-t használ (@hangtime/grip-connect)
-
-Nincs háttérszerver, minden művelet frontend oldalon történik
-
-A mérleg adatát massTotal formában kapja, kilogrammban
-
-A zsák súlya localStorage-be is mentésre kerül
 
