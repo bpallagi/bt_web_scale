@@ -92,23 +92,24 @@
       <input type="text" id="anglerName" placeholder="👤 Horgász neve">
       <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
       <button onclick="csatlakozas()">🛜 Csatlakozás a mérleghez</button>
-      
-      <div id="output" class="message"></div>
+      <div style="display: flex; justify-content: id="output" class="message"; padding: 0 10px;></div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-        <label style="display: flex; align-items: left;">
+        <label style="display: flex; align-items: center;">
           <input type="checkbox" id="tareCheckbox" style="margin-right: 5px;">
           Mérleglőzsák visszamérése
         </label>
         <label style="display: flex; align-items: center;">
           <input type="checkbox" id="preciseCheckbox_m" style="margin-right: 5px;">
           -0.05 kg
-        </label>
+        </label>        
         <label style="display: flex; align-items: center;">
           <input type="checkbox" id="preciseCheckbox_p" style="margin-right: 5px;">
           +0.05 kg
         </label>
       </div>
+      <div id="output" class="message"></div>
+
       <select id="tareWeightSelect"></select>
 
       <button id="saveButton" onclick="saveData()">💾 Mentés</button>
