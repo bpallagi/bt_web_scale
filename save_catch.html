@@ -92,7 +92,7 @@
       <input type="text" id="anglerName" placeholder="👤 Horgász neve">
       <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
       <button onclick="csatlakozas()">🛜 Csatlakozás a mérleghez</button>
-      <button id="saveButton" onclick="saveData()">💾 Mentés</button>
+      
 
       <div id="output" class="message"></div>
   
@@ -110,7 +110,9 @@
           +0.05 kg
         </label>
       </div>
-
+      
+      <button id="saveButton" onclick="saveData()">💾 Mentés</button>
+      
     <script type="module">
       import { WHC06 } from 'https://unpkg.com/@hangtime/grip-connect@latest?module';
 
