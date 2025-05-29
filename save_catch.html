@@ -93,7 +93,6 @@
       <input type="text" id="catchLocation" placeholder="📍 Fogás helye">
       <button onclick="csatlakozas()">🛜 Csatlakozás a mérleghez</button>
       
-
       <div id="output" class="message"></div>
   
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
@@ -119,7 +118,7 @@
       const output = document.getElementById("output");
       const preciseCheckbox_m = document.getElementById("preciseCheckbox_m");
       const preciseCheckbox_p = document.getElementById("preciseCheckbox_p");
-      const veglegesSulyDiv = document.getElementById("fishWeight");
+      const sulyDiv = document.getElementById("fishWeight");
 
       let device;
       
@@ -131,12 +130,8 @@
           output.className = "message success";
           output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
           saveButton.disabled = false;
-          debug.style.display = "none";
-          veglegesSulyDiv.style.display = "none";
-  
-          zsakSulyFeltolt();
-          csapatListaFeltolt();
-  
+          sulyDiv.style.display = "none";
+          
           device.notify((data) => {
             console.log("Kapott adat:", data);
             utolsoAdat = data;
