@@ -197,40 +197,58 @@
       function saveData() {
         const saveButton = document.getElementById("saveButton");
         saveButton.disabled = true;
-
+      
         const chipNumber = document.getElementById("chipNumber").value.trim();
-        const fishWeightInput = document.getElementById("fishWeight").value;
-        let fishWeight = parseFloat(fishWeightInput);
         const anglerName = document.getElementById("anglerName").value.trim();
         const catchLocation = document.getElementById("catchLocation").value.trim();
         const useTare = document.getElementById("tareCheckbox").checked;
-
-        if (!chipNumber || isNaN(fishWeight) || !anglerName || !catchLocation) {
+      
+        let fishWeight;
+      
+        if (device && utolsoAdat) {
+          // Mérleggel mérünk: fishWeight legyen a mérlegből jövő adat
+          fishWeight = parseFloat(utolsoAdat.massTotal);
+          if (isNaN(fishWeight)) {
+            showMessage("🚫 Érvénytelen mérleg adat!", "error");
+            saveButton.disabled = false;
+            return;
+          }
+        } else {
+          // Nincs mérleg: kézi inputból vesszük a fishWeight-et
+          const fishWeightInput = document.getElementById("fishWeight").value;
+          fishWeight = parseFloat(fishWeightInput);
+          if (isNaN(fishWeight)) {
+            showMessage("🚫 A hal súlyát meg kell adni!", "error");
+            saveButton.disabled = false;
+            return;
+          }
+        }
+      
+        if (!chipNumber || !anglerName || !catchLocation) {
           showMessage("🚫 Minden mezőt ki kell tölteni!", "error");
           saveButton.disabled = false;
           return;
         }
-
+      
         if (chipNumber.length < 6 || chipNumber.length > 15) {
           showMessage("🚫 A chip számnak 6 és 15 karakter közöttinek kell lennie!", "error");
           saveButton.disabled = false;
           return;
         }
-
+      
         if (useTare) {
           const tareWeight = parseFloat(tareSelect.value);
           if (!isNaN(tareWeight)) {
             fishWeight -= tareWeight;
           }
-        }  
+        }
         if (preciseCheckbox_m.checked) {
           fishWeight -= 0.05;
         }
-  
         if (preciseCheckbox_p.checked) {
           fishWeight += 0.05;
         }
-
+      
         fishWeight = parseFloat(fishWeight.toFixed(2));
             
         const data = {
