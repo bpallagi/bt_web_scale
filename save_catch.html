@@ -240,21 +240,20 @@
           catchLocation
         };
         
-        fetch('https://script.google.com/macros/s/AKfycbz436DUdBKk3RzDqPCeYkeKxOaD9CUK6SZSLlCPNn4P0EuIEb_yQcAYUUJpjPVaZN-7/exec', {
+        fetch('https://catchproxy.pallagi-bela.workers.dev', {
           method: 'POST',
           headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data),  // JSON stringként küldjük sima szövegként
-          redirect: "follow",
+          body: JSON.stringify(data),
         })
         .then(res => res.json())
         .then(response => {
-          if (response.message.includes("Nem található")) {
+          if (response.message && response.message.includes("Nem található")) {
             showMessage("🚫 " + response.message, "error");
           } else {
             let diffMsg = "";
-            if (response.weightDifference !== null) {
+            if (response.weightDifference !== null && response.weightDifference !== undefined) {
               const diff = parseFloat(response.weightDifference);
               if (diff > 0) {
                 diffMsg = ` 📈 <span style="color:green;">+${diff.toFixed(2)} kg</span>`;
@@ -262,7 +261,7 @@
                 diffMsg = ` 📉 <span style="color:red;">${diff.toFixed(2)} kg</span>`;
               }
             }
-            showMessage(response.message + "<br> Súly különbség:" + diffMsg, "success");
+            showMessage((response.message || "✅ Mentés sikeres") + "<br> Súly különbség:" + diffMsg, "success");
             clearForm();
           }
         })
