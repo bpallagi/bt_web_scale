@@ -1,17 +1,31 @@
-Hal Mérlegelő Webes Alkalmazás
-Ez a webalkalmazás Bluetooth-on keresztül csatlakozik egy WH-C06 típusú mérleghez, és segíti a horgászversenyek pontos és gyors mérési adatainak rögzítését.
+Hal chip nyilvántartó alkalmazás.
 
-⚙️ Funkciók
-Bluetooth kapcsolat a mérleggel
-WH-C06 típusú okosmérleggel csatlakozik egyetlen gombnyomásra.
+Funkciók:
+BT csatlakozás : WH-C06 mérleggel
+BT csatlakozás : Aliexpress RFID Chip olvasóval
+Automata mérés a mérleggel
+Kézi mérés lehetősége
+Precíziós mérés +-0.05 kg
+Mérleglőzsák visszamérése
+korábbi mérleglőzsák súly megjegyzése cacheben
+Chippek kezelése (6 vagy 15 karateres állati chipekhez)
+Halak azonosítás chipszám alapján
+Halak súlyának rögzítése
+Fogás helyének rögzítése
+Horgász nevének rögzítése
+Fogás rögzítésénél hal név, hízás/fogyás vissza jelzése.
 
-2 frontend létezik.
-index.html horgászversenyekre van kitalálva csapatok fogásának mérésére.
-Limitáció: a save methodus nincs kifejlesztve, bele kell kötni egy adatbázisba / sheetbe.
+Backend GAS-ban van megvalósítva, adat tárolás google sheetben illetve Cloudflare worker végzi a backendes proxy-zást.
 
-save_catch.html ez egy mérleglő alkalmazás ami chipszám beolvasással rendelkezik, tudja mérni a halak súlyát a mérleggel, de manuálisan is meg tudjuk adni a súlyát a halnak.
-Lehetőség van mérleglő visszamérésre, legutóbbi kiválasztott mérleglő súlyt megjegyezzük.
-Precíz mérésre +-0.05kg eltolására mivel a mérleg kerekít 0.X-re.
-Mentésnél itt egy google sheetes integráció be van fejlesztve cloudflares worker proxyn keresztül kommunikálunk az App scriptel.
-Mentés után sheetből vissza adja a fogás nevét és súly differenciát.
+
+Ezen kívül verseny mérleglésre előkészített alkalmazás is van, ami jelenleg csak egy minta.
+
+Ezzel csapatok fogásait lehet rögzíteni, a korábbi mérleg integrációval és mérési funkciókkal.
+Terv: csapatok számával egy sheetbe rögzíteni a fogásokat, dátumot, súlyt, fajt.
+hiányzik a komplett adatmentés jelenleg
+chip olvasás lehetősége
+statisztika modul
+tabella modul
+
+contact: pallagi.bela@gmail.com
 
