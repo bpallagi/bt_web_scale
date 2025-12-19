@@ -145,6 +145,9 @@
       scaleOut.style.display = "none";
       let device;
       let utolsoAdat = null;
+      let connectionFailed = false;
+      let connectionTimeoutId = null;
+      let errorDisplayTimeoutId = null;
       
       function showMessage(text, type) {
         const messageDiv = document.getElementById("message");
@@ -152,6 +155,27 @@
         messageDiv.className = "message " + type;
       }
       
+      function switchToManualMode() {
+        device = null;
+        utolsoAdat = null;
+      
+        scaleOut.style.display = "none";
+        weight.style.display = "";
+        saveButton.disabled = false;
+      }
+
+      function showConnectionFailedMessage() {
+        connectionFailed = true;
+      
+        output.className = "message error";
+        output.textContent = "❌ Kapcsolódás sikertelen";
+      
+        errorDisplayTimeoutId = setTimeout(() => {
+          connectionFailed = false;
+          output.textContent = "";
+        }, 2000);
+      }
+
       async function csatlakozas() {
         output.className = "message";
         output.textContent = "🔄 Kapcsolódás a mérleghez";
@@ -160,37 +184,37 @@
         saveButton.disabled = true;
       
         utolsoAdat = null;
-        let receivedData = false;
-      
+        connectionFailed = false;
+        
+        if (connectionTimeoutId) clearTimeout(connectionTimeoutId);
+        if (errorDisplayTimeoutId) clearTimeout(errorDisplayTimeoutId);
+        
         try {
           device = new WHC06();
           await device.connect();
       
-          const timeoutId = setTimeout(() => {
-            if (!receivedData) {
-              connectionAlive = false;
-              device = null;
-              utolsoAdat = null;
-      
-              output.className = "message error";
-              output.textContent = "❌ Kapcsolódás sikertelen";
-      
-              weight.style.display = "";
-              scaleOut.style.display = "none";
-              saveButton.disabled = false;
-            }
-          }, 1500);
-      
+        try {
+            device = new WHC06();
+            await device.connect();
+        
+            // 1.5 mp kapcsolódási timeout
+            connectionTimeoutId = setTimeout(() => {
+              if (!utolsoAdat) {
+                switchToManualMode();
+                showConnectionFailedMessage();
+              }
+            }, 1500);
+
           device.notify((data) => {
-            if (!connectionAlive) return;
+            if (connectionFailed) return;
       
             const raw = parseFloat(data.massTotal);
             if (isNaN(raw)) return;
       
-            receivedData = true;
-            clearTimeout(timeoutId);
-      
+            // ✔️ első valid adat
             utolsoAdat = data;
+            clearTimeout(connectionTimeoutId);
+      
             output.className = "message success";
             output.textContent = `⚖️ Súly: ${raw.toFixed(2)} kg`;
       
@@ -198,16 +222,8 @@
           });
       
         } catch (err) {
-          connectionAlive = false;
-          device = null;
-          utolsoAdat = null;
-      
-          output.className = "message error";
-          output.textContent = `❌ Mérleg hiba: ${err.message}`;
-      
-          weight.style.display = "";
-          scaleOut.style.display = "none";
-          saveButton.disabled = false;
+          switchToManualMode();
+          showConnectionFailedMessage();
         }
       }
 
