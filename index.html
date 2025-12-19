@@ -168,6 +168,7 @@
       
           const timeoutId = setTimeout(() => {
             if (!receivedData) {
+              connectionAlive = false;
               device = null;
               utolsoAdat = null;
       
@@ -181,10 +182,11 @@
           }, 1500);
       
           device.notify((data) => {
+            if (!connectionAlive) return;
+      
             const raw = parseFloat(data.massTotal);
             if (isNaN(raw)) return;
       
-            // ✔️ Első valid adat
             receivedData = true;
             clearTimeout(timeoutId);
       
@@ -196,7 +198,7 @@
           });
       
         } catch (err) {
-          // ❌ Kapcsolódási hiba
+          connectionAlive = false;
           device = null;
           utolsoAdat = null;
       
