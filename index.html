@@ -177,41 +177,40 @@
       }
 
       async function csatlakozas() {
+        const output = document.getElementById("scaleOut");
+        const weight = document.getElementById("fishWeight");
+        const scaleOut = document.getElementById("scaleOut");
+        const saveButton = document.getElementById("saveButton");
+      
         output.className = "message";
-        output.textContent = "🔄 Kapcsolódás a mérleghez";
+        output.textContent = "🔄 Kapcsolódás a mérleghez...";
         scaleOut.style.display = "";
         weight.style.display = "none";
         saveButton.disabled = true;
       
         utolsoAdat = null;
         connectionFailed = false;
-        
+      
         if (connectionTimeoutId) clearTimeout(connectionTimeoutId);
         if (errorDisplayTimeoutId) clearTimeout(errorDisplayTimeoutId);
-        
+      
         try {
           device = new WHC06();
           await device.connect();
       
-        try {
-            device = new WHC06();
-            await device.connect();
-        
-            // 1.5 mp kapcsolódási timeout
-            connectionTimeoutId = setTimeout(() => {
-              if (!utolsoAdat) {
-                switchToManualMode();
-                showConnectionFailedMessage();
-              }
-            }, 1500);
-
+          connectionTimeoutId = setTimeout(() => {
+            if (!utolsoAdat) {
+              switchToManualMode();
+              showConnectionFailedMessage();
+            }
+          }, 1500);
+      
           device.notify((data) => {
             if (connectionFailed) return;
       
             const raw = parseFloat(data.massTotal);
             if (isNaN(raw)) return;
       
-            // ✔️ első valid adat
             utolsoAdat = data;
             clearTimeout(connectionTimeoutId);
       
