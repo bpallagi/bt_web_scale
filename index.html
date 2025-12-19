@@ -153,35 +153,59 @@
       }
       
       async function csatlakozas() {
+        output.className = "message";
+        output.textContent = "🔄 Kapcsolódás a mérleghez";
+        scaleOut.style.display = "";
+        weight.style.display = "none";
+        saveButton.disabled = true;
+      
+        utolsoAdat = null;
+        let receivedData = false;
+      
         try {
           device = new WHC06();
           await device.connect();
-  
-          output.className = "message success";
-          output.textContent = "✅ Csatlakozás sikeres, várakozás mérésre...";
-          saveButton.disabled = false;
-          weight.style.display = "none";
-          scaleOut.style.display = "";
-
-          
-          device.notify((data) => {
-            console.log("Kapott adat:", data);
-            utolsoAdat = data;
-  
-            const raw = parseFloat(data.massTotal);
-            if (!isNaN(raw)) {
-              const formatted = `${raw.toFixed(2)} kg`;
-              output.textContent = `⚖️ Súly: ${formatted}`;
-            } else {
-              output.textContent = "⚖️ Súly: Érvénytelen adat";
+      
+          const timeoutId = setTimeout(() => {
+            if (!receivedData) {
+              device = null;
+              utolsoAdat = null;
+      
+              output.className = "message error";
+              output.textContent = "❌ Kapcsolódás sikertelen";
+      
+              weight.style.display = "";
+              scaleOut.style.display = "none";
+              saveButton.disabled = false;
             }
+          }, 1500);
+      
+          device.notify((data) => {
+            const raw = parseFloat(data.massTotal);
+            if (isNaN(raw)) return;
+      
+            // ✔️ Első valid adat
+            receivedData = true;
+            clearTimeout(timeoutId);
+      
+            utolsoAdat = data;
+            output.className = "message success";
+            output.textContent = `⚖️ Súly: ${raw.toFixed(2)} kg`;
+      
+            saveButton.disabled = false;
           });
-  
+      
         } catch (err) {
-          console.error(err);
+          // ❌ Kapcsolódási hiba
+          device = null;
+          utolsoAdat = null;
+      
           output.className = "message error";
-          output.textContent = `❌ Hiba: ${err.message}`;
-          saveButton.disabled = true;
+          output.textContent = `❌ Mérleg hiba: ${err.message}`;
+      
+          weight.style.display = "";
+          scaleOut.style.display = "none";
+          saveButton.disabled = false;
         }
       }
 
