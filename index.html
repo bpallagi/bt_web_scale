@@ -145,9 +145,6 @@
       scaleOut.style.display = "none";
       let device;
       let utolsoAdat = null;
-      let connectionFailed = false;
-      let connectionTimeoutId = null;
-      let errorDisplayTimeoutId = null;
       
       function showMessage(text, type) {
         const messageDiv = document.getElementById("message");
@@ -177,11 +174,6 @@
       }
 
       async function csatlakozas() {
-        const output = document.getElementById("scaleOut");
-        const weight = document.getElementById("fishWeight");
-        const scaleOut = document.getElementById("scaleOut");
-        const saveButton = document.getElementById("saveButton");
-      
         output.className = "message";
         output.textContent = "🔄 Kapcsolódás a mérleghez...";
         scaleOut.style.display = "";
@@ -189,41 +181,66 @@
         saveButton.disabled = true;
       
         utolsoAdat = null;
-        connectionFailed = false;
+        device = null;
       
-        if (connectionTimeoutId) clearTimeout(connectionTimeoutId);
-        if (errorDisplayTimeoutId) clearTimeout(errorDisplayTimeoutId);
+        let receivedData = false;
       
         try {
           device = new WHC06();
           await device.connect();
       
-          connectionTimeoutId = setTimeout(() => {
-            if (!utolsoAdat) {
-              switchToManualMode();
-              showConnectionFailedMessage();
+          // ⏱ Timeout – ha nincs adat 1.5s alatt
+          const timeoutId = setTimeout(() => {
+            if (!receivedData) {
+              fallbackToManual("❌ Kapcsolódás sikertelen");
             }
           }, 1500);
       
           device.notify((data) => {
-            if (connectionFailed) return;
-      
             const raw = parseFloat(data.massTotal);
             if (isNaN(raw)) return;
       
-            utolsoAdat = data;
-            clearTimeout(connectionTimeoutId);
+            receivedData = true;
+            clearTimeout(timeoutId);
       
+            utolsoAdat = data;
             output.className = "message success";
             output.textContent = `⚖️ Súly: ${raw.toFixed(2)} kg`;
-      
             saveButton.disabled = false;
           });
       
         } catch (err) {
-          switchToManualMode();
-          showConnectionFailedMessage();
+          // ❗ USER CANCEL
+          if (err.name === "NotFoundError") {
+            fallbackToManual("❌ Kapcsolódás megszakítva");
+            return;
+          }
+      
+          // ❗ EGYÉB HIBA
+          fallbackToManual("❌ Mérleg hiba");
+          console.error(err);
         }
+      }
+
+      function fallbackToManual(message) {
+        device = null;
+        utolsoAdat = null;
+      
+        output.className = "message error";
+        output.textContent = message;
+      
+        scaleOut.style.display = "";
+        weight.style.display = "";
+      
+        saveButton.disabled = false;
+      
+        // ⏲ üzenet eltüntetése 2 mp után
+        setTimeout(() => {
+          if (output.textContent === message) {
+            output.textContent = "";
+            scaleOut.style.display = "none";
+          }
+        }, 2000);
       }
 
       // Tare listagenerálás
