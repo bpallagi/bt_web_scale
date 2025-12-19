@@ -210,13 +210,6 @@
           });
       
         } catch (err) {
-          // ❗ USER CANCEL
-          if (err.name === "NotFoundError") {
-            fallbackToManual("❌ Kapcsolódás megszakítva");
-            return;
-          }
-      
-          // ❗ EGYÉB HIBA
           fallbackToManual("❌ Mérleg hiba");
           console.error(err);
         }
