@@ -14,7 +14,7 @@ export default {
     }
 //Google Apps Script URL
     const googleScriptUrl = env.gscript_url;
-
+    const googleScriptUrl2 = env.gscript_url;
     try {
       const requestBodyText = await request.text();
       const requestBody = JSON.parse(requestBodyText);
