@@ -1,0 +1,3 @@
+name = "catchproxy"            # a Worker neve CF-en
+main = "index.js"              # a belépési pont (Worker kód)
+compatibility_date = "2026-04-07"
