@@ -12,13 +12,13 @@ export default {
         headers: corsHeaders,
       });
     }
-
+//Google Apps Script URL
     const googleScriptUrl = env.gscript_url;
 
     try {
       const requestBodyText = await request.text();
       const requestBody = JSON.parse(requestBodyText);
-
+// A Google Apps Script API kulcs
       requestBody.api_key = env.api_key;
 
       const googleResponse = await fetch(googleScriptUrl, {
